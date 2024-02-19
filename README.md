@@ -6,7 +6,7 @@ A line follower bot utilizes sensors for rapid line tracking and integrates inte
 
 ## Documentation
 
-#CopyRight to  Paradox Innovator,(Anshu.raj.paradox@gmail.com)
+#CopyRight to  Paradox Innovator Group,(Anshu.raj.paradox@gmail.com)
 
 
 ## Features
