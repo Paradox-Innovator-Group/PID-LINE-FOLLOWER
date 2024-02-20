@@ -32,7 +32,7 @@ float Ki = 0 ;
 
 
 int minValues[8], maxValues[8], threshold[8];
-
+void calibrate(), linefollow();
 void setup()
 {
   Serial.begin(9600);
@@ -48,78 +48,83 @@ void loop()
   //delay(2000);
   while (1)
   {
-    if (analogRead(Pin[0]) <50 && analogRead(Pin[1]) <50 && analogRead(Pin[2]) <50 && analogRead(Pin[3]) <50 && analogRead(Pin[4]) <50 && analogRead(Pin[5]) <50 && analogRead(Pin[6]) <50 && analogRead(Pin[7]) <50)
+    if (analogRead(Pin[0]) < 50 && analogRead(Pin[1]) < 50 && analogRead(Pin[2]) < 50 && analogRead(Pin[3]) < 50 && analogRead(Pin[4]) < 50 && analogRead(Pin[5]) < 50 && analogRead(Pin[6]) < 50 && analogRead(Pin[7]) < 50)
     {
       Serial.println("BACK");
-      
+
       motor1.drive(lfspeed);
       motor2.drive(-lfspeed);
     }
-    else if (analogRead(Pin[0]) < threshold[0] && analogRead(Pin[7]) > threshold[7] && analogRead(ir) <50)
+    
+    else if ((analogRead(Pin[0]) > threshold[0] && analogRead(Pin[1]) > threshold[1] && analogRead(Pin[2]) > threshold[2] && analogRead(Pin[3]) > threshold[3] && analogRead(Pin[4]) > threshold[4] && analogRead(Pin[5]) > threshold[5] && analogRead(Pin[6]) > threshold[6] && analogRead(Pin[7]) > threshold[7]))
+    {
+      Serial.println("Left");
+      motor1.drive(lfspeed);
+      motor2.drive(-lfspeed);
+      delay(100);
+    }
+    else if (analogRead(Pin[0]) < threshold[0] && analogRead(Pin[7]) > threshold[7] && digitalRead(ir) == 0)
     {
       Serial.println("Right");
       lsp = 0; rsp = lfspeed;
       motor1.drive(0);
       motor2.drive(lfspeed);
     }
-    
-    else if (analogRead(Pin[1]) < threshold[1] && analogRead(Pin[6]) > threshold[6]&& digitalRead(ir) ==0 )
-    {Serial.println("2");
-      lsp = 0; rsp = lfspeed/2;
+
+    else if (analogRead(Pin[1]) < threshold[1] && analogRead(Pin[6]) > threshold[6]&& digitalRead(ir) == 0 )
+    { 
+      Serial.println("2");
+      lsp = 0; rsp = lfspeed / 2;
       motor1.drive(0);
       motor2.drive(lfspeed);
     }
 
-    else if (analogRead(Pin[2]) < threshold[2] && analogRead(Pin[5]) > threshold[5]&& digitalRead(ir) ==0 )
-    {Serial.println("3");
-      lsp = 0; rsp = lfspeed/4;
+    else if (analogRead(Pin[2]) < threshold[2] && analogRead(Pin[5]) > threshold[5] && digitalRead(ir) == 0)
+    { Serial.println("3");
+      lsp = 0; rsp = lfspeed / 4;
       motor1.drive(0);
       motor2.drive(lfspeed);
     }
 
-    else if (analogRead(Pin[5]) < threshold[5] && analogRead(Pin[2]) > threshold[2])
-    {Serial.println("4");
-      lsp = lfspeed/4; rsp = 0;
+    else if (analogRead(Pin[5]) < threshold[5] && analogRead(Pin[2]) > threshold[2] )
+    { Serial.println("left");
+      lsp = lfspeed / 4; rsp = 0;
       motor1.drive(lfspeed);
       motor2.drive(0);
     }
 
     else if (analogRead(Pin[6]) < threshold[6] && analogRead(Pin[1]) > threshold[1])
     { Serial.println("5");
-      lsp = lfspeed/2; rsp = 0;
+      lsp = lfspeed / 2; rsp = 0;
       motor1.drive(lfspeed);
       motor2.drive(0);
     }
 
     else if (analogRead(Pin[7]) < threshold[7] && analogRead(Pin[0]) > threshold[0] )
-    {Serial.println("6");
+    { Serial.println("6");
       lsp = lfspeed; rsp = 0;
       motor1.drive(0);
       motor2.drive(lfspeed);
     }
-    
+
     else if ((analogRead(Pin[3]) > threshold[3] || analogRead(Pin[4]) > threshold[4]) )
     {
-      if( digitalRead(ir) ==1)
-      {
-            Serial.println("7");
-//            
-          
-          Kp = 0.0002 * (1000 - analogRead(Pin[3]));
-          Kd = 1 * Kp;
-          Ki = 0.0006;
-          linefollow();
-      }
+      Serial.println("forward");
+      Kp = 0.0002 * (1000 - analogRead(Pin[3]));
+      Kd = 1 * Kp;
+      Ki = 0.0006;
+      linefollow();
     }
-
+    
+    
     else if (analogRead(Pin[0]) < threshold[0] && analogRead(Pin[1]) < threshold[1] && analogRead(Pin[2]) < threshold[2] && analogRead(Pin[3]) < threshold[3] && analogRead(Pin[4]) < threshold[4] && analogRead(Pin[5]) < threshold[5] && analogRead(Pin[6]) < threshold[6] && analogRead(Pin[7]) < threshold[7])
-    {Serial.println("8");
+    { Serial.println("8");
       lsp = 0; rsp = 0;
       motor1.drive(0);
       motor2.drive(0);
     }
     else if (analogRead(Pin[0]) > threshold[0] && analogRead(Pin[1]) > threshold[1] && analogRead(Pin[2]) > threshold[2] && analogRead(Pin[3]) > threshold[3] && analogRead(Pin[4]) > threshold[4] && analogRead(Pin[5]) > threshold[5] && analogRead(Pin[6]) > threshold[6] && analogRead(Pin[7]) > threshold[7])
-    {Serial.println("9");
+    { Serial.println("9");
       lsp = 0; rsp = 0;
       motor1.drive(0);
       motor2.drive(0);
@@ -132,7 +137,11 @@ void loop()
     }
   }
 }
-
+void turnLeft()
+{
+  motor1.drive(lfspeed);
+  motor2.drive(-lfspeed);
+}
 void linefollow()
 {
   int error = (analogRead(Pin[1]) - analogRead(Pin[6]));
@@ -171,7 +180,7 @@ void calibrate()
     minValues[i] = analogRead(Pin[i]);
     maxValues[i] = analogRead(Pin[i]);
   }
-  
+
   for (int i = 0; i < 3000; i++)
   {
     motor1.drive(50);
@@ -197,7 +206,7 @@ void calibrate()
     Serial.print("   ");
   }
   Serial.println();
-  
+
   motor1.drive(0);
   motor2.drive(0);
 }
